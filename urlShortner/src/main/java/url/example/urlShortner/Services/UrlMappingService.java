@@ -1,6 +1,7 @@
 package url.example.urlShortner.Services;
 
 import lombok.AllArgsConstructor;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import url.example.urlShortner.DTOs.ClickEventDTO;
 import url.example.urlShortner.DTOs.UrlMappingDTO;
@@ -10,8 +11,13 @@ import url.example.urlShortner.Model.User;
 import url.example.urlShortner.Repository.ClickEventRepository;
 import url.example.urlShortner.Repository.UrlMappingRepository;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -87,8 +93,36 @@ public class UrlMappingService {
                 .collect(Collectors.groupingBy(click -> click.getClickDate().toLocalDate(), Collectors.counting()));
 
     }
+    private Map<String, String> getLocationFromIP(String ip) {
+        try {
+            URL url = new URL("http://ip-api.com/json/" + ip);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
 
-    public UrlMapping getOriginalUrl(String shortUrl) {
+            BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream()));
+
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+
+            JSONObject json = new JSONObject(response.toString());
+
+            Map<String, String> location = new HashMap<>();
+            location.put("country", json.getString("country"));
+            location.put("countryCode", json.getString("countryCode"));
+
+            return location;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public UrlMapping getOriginalUrl(String shortUrl, jakarta.servlet.http.HttpServletRequest request) {
         UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
         if (urlMapping != null) {
             urlMapping.setClickCount(urlMapping.getClickCount() + 1);
@@ -98,9 +132,61 @@ public class UrlMappingService {
             ClickEvent clickEvent = new ClickEvent();
             clickEvent.setClickDate(LocalDateTime.now());
             clickEvent.setUrlMapping(urlMapping);
+
+            // Extract tracking info
+            if (request != null) {
+                // UTM params
+                clickEvent.setUtmSource(request.getParameter("utm_source"));
+                clickEvent.setUtmMedium(request.getParameter("utm_medium"));
+                clickEvent.setUtmCampaign(request.getParameter("utm_campaign"));
+
+                // Referer
+                String referer = request.getHeader("referer");
+                if (referer != null) {
+                    if (referer.contains("twitter.com") || referer.contains("t.co")) clickEvent.setReferrer("Twitter / X");
+                    else if (referer.contains("linkedin.com")) clickEvent.setReferrer("LinkedIn");
+                    else if (referer.contains("facebook.com")) clickEvent.setReferrer("Facebook");
+                    else if (referer.contains("instagram.com")) clickEvent.setReferrer("Instagram");
+                    else clickEvent.setReferrer(referer);
+                }
+
+                // IP and Location mapping (basic fallback)
+                String ip = request.getHeader("X-Forwarded-For");
+                if (ip == null || ip.isEmpty()) ip = request.getRemoteAddr();
+                Map<String, String> location = getLocationFromIP(ip);
+                if (location != null) {
+                    clickEvent.setLocation(location.get("country"));
+                    clickEvent.setCountryCode(location.get("countryCode"));
+                } else {
+                    clickEvent.setLocation("Unknown");
+                    clickEvent.setCountryCode("Unknown");
+                }
+
+                String userAgent = request.getHeader("User-Agent");
+                if (userAgent != null) {
+                    // Device
+                    if (userAgent.contains("Mobi") || userAgent.contains("Android")) clickEvent.setDevice("Mobile");
+                    else if (userAgent.contains("Tablet") || userAgent.contains("iPad")) clickEvent.setDevice("Tablet");
+                    else clickEvent.setDevice("Desktop");
+
+                    // OS
+                    if (userAgent.contains("Windows")) clickEvent.setOs("Windows");
+                    else if (userAgent.contains("MacO")) clickEvent.setOs("MacOS");
+                    else if (userAgent.contains("Linux")) clickEvent.setOs("Linux");
+                    else if (userAgent.contains("Android")) clickEvent.setOs("Android");
+                    else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) clickEvent.setOs("iOS");
+                    else clickEvent.setOs("Unknown");
+
+                    // Browser
+                    if (userAgent.contains("Chrome")) clickEvent.setBrowser("Chrome");
+                    else if (userAgent.contains("Firefox")) clickEvent.setBrowser("Firefox");
+                    else if (userAgent.contains("Safari") && !userAgent.contains("Chrome")) clickEvent.setBrowser("Safari");
+                    else if (userAgent.contains("Edge")) clickEvent.setBrowser("Edge");
+                    else clickEvent.setBrowser("Unknown");
+                }
+            }
             clickEventRepository.save(clickEvent);
         }
-
         return urlMapping;
     }
 }

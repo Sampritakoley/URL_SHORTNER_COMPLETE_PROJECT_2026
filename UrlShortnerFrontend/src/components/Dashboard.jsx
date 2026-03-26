@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import API from "../Api/Api"
 import Navbar from "./Navbar"
 import {
@@ -17,10 +18,11 @@ import {
   Filter,
   Download
 } from "lucide-react"
+import Sidebar from "./Sidebar"
 
 export default function Dashboard() {
-
-  const subDomain = (import.meta.env.VITE_REACT_SUBDOMAIN || "url.localhost:5173").replace(/^https?:\/\//, "");
+  const navigate = useNavigate();
+  const subDomain = (import.meta.env.VITE_REACT_SUBDOMAIN || "url.localhost:5174").replace(/^https?:\/\//, "");
 
   const [url, setUrl] = useState("")
   const [dashboard, setDashboard] = useState(null)
@@ -64,25 +66,7 @@ export default function Dashboard() {
     <div className="flex bg-[#FAFAFB] min-h-screen font-sans text-gray-900 overflow-hidden">
       
       {/* SIDEBAR - Full Height Left */}
-      <div className={`bg-white border-r border-gray-100 flex flex-col transition-all duration-300 shadow-sm ${collapsed ? "w-20" : "w-64"} z-20`}>
-        <div className="flex flex-col justify-between flex-1 p-4 pt-6">
-            <ul className="space-y-1">
-              <li className="flex items-center gap-3 bg-[#EEF2FF] text-blue-700 font-semibold px-3 py-2.5 rounded-lg cursor-pointer transition-colors">
-                <LayoutDashboard size={18} />
-                {!collapsed && "Dashboard"}
-              </li>
-              <li className="flex items-center gap-3 text-gray-500 hover:text-gray-900 hover:bg-gray-50 font-medium px-3 py-2.5 rounded-lg cursor-pointer transition-colors">
-                <BarChart3 size={18} />
-                {!collapsed && "Analytics"}
-              </li>
-            </ul>
-
-            <button className="flex items-center gap-3 text-red-500 font-medium px-3 py-2.5 rounded-lg hover:bg-red-50 transition-colors w-full mt-8">
-              <LogOut size={18} />
-              {!collapsed && "Logout"}
-            </button>
-        </div>
-      </div>
+      <Sidebar collapsed={collapsed} />
 
       {/* MAIN AREA */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
@@ -248,8 +232,11 @@ export default function Dashboard() {
                         </div>
                       </td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2 text-gray-700 font-semibold">
-                           {link.clicks?.toLocaleString() || 0} <BarChart2 size={14} className="text-gray-400" />
+                        <div 
+                          onClick={() => navigate(`/analytics/${link.shortUrl}`)}
+                          className="flex items-center gap-2 text-blue-600 font-semibold cursor-pointer hover:bg-blue-50 py-1.5 px-3 rounded-lg transition-colors w-fit"
+                        >
+                           {link.clicks?.toLocaleString() || 0} <BarChart2 size={14} className="text-blue-500" />
                         </div>
                       </td>
                       <td className="p-4 text-gray-500">

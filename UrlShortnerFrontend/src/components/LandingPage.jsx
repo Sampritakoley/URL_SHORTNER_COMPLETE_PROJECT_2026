@@ -9,20 +9,16 @@ export const LandingPage = () => {
 
       {/* NAVBAR */}
       <nav className="flex items-center justify-between px-20 py-6">
-
         <div className="text-2xl font-bold text-indigo-600">
           LinkSnap
         </div>
-
         <div className="flex items-center gap-6">
-          <button 
+          <button
             onClick={() => navigate("/login")}
-            className="text-gray-600 hover:text-indigo-600"
-          >
-            Login
+            className="text-gray-600 hover:text-indigo-600">Login
           </button>
 
-          <button 
+          <button
             onClick={() => navigate("/register")}
             className="bg-indigo-600 text-white px-5 py-2 rounded-xl hover:bg-indigo-700 shadow"
           >
@@ -41,9 +37,9 @@ export const LandingPage = () => {
         <div>
 
           <h1 className="text-5xl font-bold leading-tight">
-            Shorten, Manage <br/>
-            and <span className="text-indigo-600">Track</span><br/>
-            <span className="text-indigo-600">Your Links</span><br/>
+            Shorten, Manage <br />
+            and <span className="text-indigo-600">Track</span><br />
+            <span className="text-indigo-600">Your Links</span><br />
             Effortlessly.
           </h1>
 
@@ -132,10 +128,10 @@ export const LandingPage = () => {
           {/* CARD 1 */}
           <div className="bg-white p-6 rounded-xl shadow">
 
-            
+
             <img
-            src={LightImg}
-            className="rounded-lg mb-4"
+              src={LightImg}
+              className="rounded-lg mb-4"
             />
             <h3 className="text-lg font-semibold">
               Lightning Fast Redirection
@@ -278,7 +274,7 @@ export const LandingPage = () => {
 
           <div className="flex justify-center gap-4 mt-8">
 
-            <button 
+            <button
               onClick={() => navigate("/register")}
               className="bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold"
             >

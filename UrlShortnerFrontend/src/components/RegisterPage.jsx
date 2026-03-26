@@ -1,7 +1,9 @@
 import { useState } from "react"
 import axios from "axios"
+import { useNavigate } from "react-router-dom"
 
 export default function RegisterPage() {
+  const navigate = useNavigate()
 
   const [username,setUsername] = useState("")
   const [email,setEmail] = useState("")
@@ -28,6 +30,7 @@ export default function RegisterPage() {
       )
       alert("Account created successfully")
       console.log(response.data)
+      navigate("/login")
     }catch(err){
       setError("Registration failed")
     }
@@ -204,7 +207,10 @@ export default function RegisterPage() {
 
               <p className="text-sm text-center mt-4 text-gray-500">
                 Already have an account?
-                <span className="text-indigo-600 cursor-pointer ml-1">
+                <span 
+                  onClick={() => navigate("/login")}
+                  className="text-indigo-600 cursor-pointer ml-1"
+                >
                   Login here
                 </span>
               </p>

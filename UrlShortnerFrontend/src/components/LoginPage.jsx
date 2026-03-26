@@ -1,13 +1,15 @@
 import { useState } from "react"
 import axios from "axios"
 import { useNavigate } from "react-router-dom"
+import { useStoreContext } from "../contextApi/ContextApi"
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const [username,setUserName] = useState("")
-  const [password,setPassword] = useState("")
-  const [loading,setLoading] = useState(false)
-  const [error,setError] = useState("")
+  const { setToken } = useStoreContext()
+  const [username, setUserName] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -15,7 +17,7 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
-    try{
+    try {
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/auth/public/login`,
@@ -27,16 +29,12 @@ export default function LoginPage() {
 
       console.log(response.data)
 
-      localStorage.setItem("token",response.data.token)
-
-      alert("Login successful")
-
-    }catch(err){
-
+      localStorage.setItem("token", response.data.token)
+      setToken(response.data.token)
+      navigate("/dashboard")
+    } catch (err) {
       setError("Invalid credentials")
-
     }
-
     setLoading(false)
   }
 
@@ -108,7 +106,7 @@ export default function LoginPage() {
               placeholder="name@company.com"
               className="w-full border rounded-lg px-4 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={username}
-              onChange={(e)=>setUserName(e.target.value)}
+              onChange={(e) => setUserName(e.target.value)}
               required
             />
 
@@ -138,7 +136,7 @@ export default function LoginPage() {
               placeholder="****"
               className="w-full border rounded-lg px-4 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
 
@@ -148,7 +146,7 @@ export default function LoginPage() {
           {/* KEEP LOGIN */}
           <div className="flex items-center mb-4">
 
-            <input type="checkbox" className="mr-2"/>
+            <input type="checkbox" className="mr-2" />
 
             <span className="text-sm text-gray-500">
               Keep me logged in for 30 days
@@ -181,7 +179,7 @@ export default function LoginPage() {
 
           New to LinkSnap?{" "}
 
-          <span 
+          <span
             onClick={() => navigate("/register")}
             className="text-indigo-600 cursor-pointer hover:underline"
           >
