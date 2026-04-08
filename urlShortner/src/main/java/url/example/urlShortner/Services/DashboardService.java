@@ -1,13 +1,14 @@
 package url.example.urlShortner.Services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import url.example.urlShortner.DTOs.DashboardResponse;
 import url.example.urlShortner.DTOs.LinkDto;
 import url.example.urlShortner.Model.UrlMapping;
 import url.example.urlShortner.Repository.UrlMappingRepository;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -19,7 +20,7 @@ public class DashboardService {
     }
 
 
-    public DashboardResponse getDashboardData(Long userId) {
+    public DashboardResponse getDashboardData(Long userId, int page, int limit) {
 
         DashboardResponse response = new DashboardResponse();
 
@@ -34,11 +35,12 @@ public class DashboardService {
                 .findTopByUserIdOrderByClickCountDesc(userId)
                 .orElse(null);
 
-        // recent links
-        List<UrlMapping> recent = urlMappingRepository
-                .findTop5ByUserIdOrderByCreatedDateDesc(userId);
+        // paginated links
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        Page<UrlMapping> urlMappingPage = urlMappingRepository
+                .findByUserIdOrderByCreatedDateDesc(userId, pageable);
 
-        List<LinkDto> recentLinks = recent.stream()
+        List<LinkDto> recentLinks = urlMappingPage.getContent().stream()
                 .map(link -> new LinkDto(
                         link.getId(),
                         link.getOriginalUrl(),
@@ -52,6 +54,9 @@ public class DashboardService {
         response.setTotalClicks(totalClicks);
         response.setMostPopularLink(popular != null ? popular.getShortUrl() : null);
         response.setRecentLinks(recentLinks);
+        response.setCurrentPage(page);
+        response.setTotalPages(urlMappingPage.getTotalPages());
+        response.setTotalEvents(totalLinks);
 
         return response;
     }

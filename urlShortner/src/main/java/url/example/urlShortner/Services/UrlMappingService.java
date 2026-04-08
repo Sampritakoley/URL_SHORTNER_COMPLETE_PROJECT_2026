@@ -1,7 +1,10 @@
 package url.example.urlShortner.Services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import org.json.JSONObject;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import url.example.urlShortner.DTOs.ClickEventMessage;
 import org.springframework.stereotype.Service;
 import url.example.urlShortner.DTOs.ClickEventDTO;
 import url.example.urlShortner.DTOs.UrlMappingDTO;
@@ -28,6 +31,8 @@ import java.util.stream.Collectors;
 public class UrlMappingService {
     private UrlMappingRepository urlMappingRepository;
     private ClickEventRepository clickEventRepository;
+    private KafkaTemplate<String, String> kafkaTemplate;
+    private ObjectMapper objectMapper;
 
     public UrlMappingDTO createShortUrl(String originalUrl, User user) {
         String shortUrl = generateShortUrl();
@@ -91,101 +96,34 @@ public class UrlMappingService {
         List<ClickEvent> clickEvents = clickEventRepository.findByUrlMappingInAndClickDateBetween(urlMappings, start.atStartOfDay(), end.plusDays(1).atStartOfDay());
         return clickEvents.stream()
                 .collect(Collectors.groupingBy(click -> click.getClickDate().toLocalDate(), Collectors.counting()));
-
-    }
-    private Map<String, String> getLocationFromIP(String ip) {
-        try {
-            URL url = new URL("http://ip-api.com/json/" + ip);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()));
-
-            StringBuilder response = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-                response.append(line);
-            }
-
-            JSONObject json = new JSONObject(response.toString());
-
-            Map<String, String> location = new HashMap<>();
-            location.put("country", json.getString("country"));
-            location.put("countryCode", json.getString("countryCode"));
-
-            return location;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
     public UrlMapping getOriginalUrl(String shortUrl, jakarta.servlet.http.HttpServletRequest request) {
         UrlMapping urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
         if (urlMapping != null) {
-            urlMapping.setClickCount(urlMapping.getClickCount() + 1);
-            urlMappingRepository.save(urlMapping);
+            try {
+                ClickEventMessage clickMessage = new ClickEventMessage();
+                clickMessage.setUrlMappingId(urlMapping.getId());
 
-            // Record Click Event
-            ClickEvent clickEvent = new ClickEvent();
-            clickEvent.setClickDate(LocalDateTime.now());
-            clickEvent.setUrlMapping(urlMapping);
+                if (request != null) {
+                    clickMessage.setUtmSource(request.getParameter("utm_source"));
+                    clickMessage.setUtmMedium(request.getParameter("utm_medium"));
+                    clickMessage.setUtmCampaign(request.getParameter("utm_campaign"));
+                    clickMessage.setReferer(request.getHeader("referer"));
+                    clickMessage.setUserAgent(request.getHeader("User-Agent"));
 
-            // Extract tracking info
-            if (request != null) {
-                // UTM params
-                clickEvent.setUtmSource(request.getParameter("utm_source"));
-                clickEvent.setUtmMedium(request.getParameter("utm_medium"));
-                clickEvent.setUtmCampaign(request.getParameter("utm_campaign"));
-
-                // Referer
-                String referer = request.getHeader("referer");
-                if (referer != null) {
-                    if (referer.contains("twitter.com") || referer.contains("t.co")) clickEvent.setReferrer("Twitter / X");
-                    else if (referer.contains("linkedin.com")) clickEvent.setReferrer("LinkedIn");
-                    else if (referer.contains("facebook.com")) clickEvent.setReferrer("Facebook");
-                    else if (referer.contains("instagram.com")) clickEvent.setReferrer("Instagram");
-                    else clickEvent.setReferrer(referer);
+                    String ip = request.getHeader("X-Forwarded-For");
+                    if (ip == null || ip.isEmpty()) {
+                        ip = request.getRemoteAddr();
+                    }
+                    clickMessage.setIp(ip);
                 }
 
-                // IP and Location mapping (basic fallback)
-                String ip = request.getHeader("X-Forwarded-For");
-                if (ip == null || ip.isEmpty()) ip = request.getRemoteAddr();
-                Map<String, String> location = getLocationFromIP(ip);
-                if (location != null) {
-                    clickEvent.setLocation(location.get("country"));
-                    clickEvent.setCountryCode(location.get("countryCode"));
-                } else {
-                    clickEvent.setLocation("Unknown");
-                    clickEvent.setCountryCode("Unknown");
-                }
+                String jsonMessage = objectMapper.writeValueAsString(clickMessage);
+                kafkaTemplate.send("click-events-topic", jsonMessage);
 
-                String userAgent = request.getHeader("User-Agent");
-                if (userAgent != null) {
-                    // Device
-                    if (userAgent.contains("Mobi") || userAgent.contains("Android")) clickEvent.setDevice("Mobile");
-                    else if (userAgent.contains("Tablet") || userAgent.contains("iPad")) clickEvent.setDevice("Tablet");
-                    else clickEvent.setDevice("Desktop");
-
-                    // OS
-                    if (userAgent.contains("Windows")) clickEvent.setOs("Windows");
-                    else if (userAgent.contains("MacO")) clickEvent.setOs("MacOS");
-                    else if (userAgent.contains("Linux")) clickEvent.setOs("Linux");
-                    else if (userAgent.contains("Android")) clickEvent.setOs("Android");
-                    else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) clickEvent.setOs("iOS");
-                    else clickEvent.setOs("Unknown");
-
-                    // Browser
-                    if (userAgent.contains("Chrome")) clickEvent.setBrowser("Chrome");
-                    else if (userAgent.contains("Firefox")) clickEvent.setBrowser("Firefox");
-                    else if (userAgent.contains("Safari") && !userAgent.contains("Chrome")) clickEvent.setBrowser("Safari");
-                    else if (userAgent.contains("Edge")) clickEvent.setBrowser("Edge");
-                    else clickEvent.setBrowser("Unknown");
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            clickEventRepository.save(clickEvent);
         }
         return urlMapping;
     }

@@ -9,6 +9,10 @@ public class DashboardResponse {
     private long totalClicks;
     private String mostPopularLink;
     private List<LinkDto> recentLinks;
+    private int currentPage;
+    private int totalPages;
+    private long totalEvents;
+
 
     // getters & setters
 
@@ -43,4 +47,30 @@ public class DashboardResponse {
     public void setRecentLinks(List<LinkDto> recentLinks) {
         this.recentLinks = recentLinks;
     }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public long getTotalEvents() {
+        return totalEvents;
+    }
+
+    public void setTotalEvents(long totalEvents) {
+        this.totalEvents = totalEvents;
+    }
 }
+
+

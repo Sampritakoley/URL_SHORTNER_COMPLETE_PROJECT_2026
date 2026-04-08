@@ -2,9 +2,9 @@ package url.example.urlShortner.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import url.example.urlShortner.DTOs.DashboardResponse;
 import url.example.urlShortner.Services.DashboardService;
@@ -20,7 +20,10 @@ public class DashboardController {
     private DashboardService dashboardService;
 
     @GetMapping
-    public DashboardResponse getDashboard(Principal principal) {
+    public DashboardResponse getDashboard(
+            Principal principal,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit) {
         UsernamePasswordAuthenticationToken authentication =
                 (UsernamePasswordAuthenticationToken) principal;
 
@@ -28,6 +31,6 @@ public class DashboardController {
                 (UserDetailsImpl) authentication.getPrincipal();
 
         Long userId = userDetails.getId();
-        return dashboardService.getDashboardData(userId);
+        return dashboardService.getDashboardData(userId, page, limit);
     }
 }

@@ -41,7 +41,6 @@ public class AnalyticsController {
 
         User user = getUser(principal);
 
-        // Safety check: parse only if not null AND not empty
         LocalDate start = (startDate != null && !startDate.trim().isEmpty())
                 ? LocalDate.parse(startDate)
                 : LocalDate.now().minusDays(30);

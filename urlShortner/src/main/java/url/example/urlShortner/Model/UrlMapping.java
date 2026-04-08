@@ -1,5 +1,6 @@
 package url.example.urlShortner.Model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,6 +22,7 @@ public class UrlMapping {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "urlMapping")
     private List<ClickEvent> clickEvents;
 }
