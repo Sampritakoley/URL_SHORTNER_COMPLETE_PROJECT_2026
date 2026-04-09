@@ -1,4 +1,5 @@
 # 🔗 URL Shortener with Analytics Dashboard
+![MixCollage-09-Apr-2026-06-31-AM-1518](https://github.com/user-attachments/assets/c226b48c-5a7b-475c-974f-4c7d50482e72)
 
 A **scalable full-stack URL Shortener platform** that allows users to generate short URLs and track detailed analytics such as **click count, location, device type, and browser information** through a modern dashboard.
 
