@@ -1,79 +1,66 @@
-# 🔗 URL Shortener with Analytics Dashboard
-![MixCollage-09-Apr-2026-06-31-AM-1518](https://github.com/user-attachments/assets/c226b48c-5a7b-475c-974f-4c7d50482e72)
+# 🔗 LinkSnap - Advanced URL Shortener & Analytics Platform
 
-A **scalable full-stack URL Shortener platform** that allows users to generate short URLs and track detailed analytics such as **click count, location, device type, and browser information** through a modern dashboard.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-LinkSnap-blue?style=for-the-badge)](https://linksnapsam.netlify.app/)
+[![Backend API](https://img.shields.io/badge/API-Railway-brightgreen?style=for-the-badge)](https://linksnapurl.up.railway.app/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.0-6DB33F?style=for-the-badge&logo=spring)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=for-the-badge&logo=postgresql)](https://neon.tech/)
+[![Redis](https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis)](https://redis.io/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 
-This project demonstrates **backend architecture, scalable event tracking, and modern frontend development practices.**
+LinkSnap is a highly scalable, full-stack URL shortening service designed with performance and deep analytics in mind. Built with **Spring Boot** and **React**, it features an optimized redirection engine powered by **Redis Caching** and a robust analytics engine that tracks geographic location, device types, and browser metrics using **Asynchronous Processing**.
+
+
+## ✨ Key Features
+
+- **Lightning-Fast Redirects:** Utilizes **Redis** to cache shortened URLs, completely bypassing database queries during redirects to achieve sub-millisecond response times.
+- **Collision-Free Shortening:** Employs a **Base62 Encoding** algorithm mapped to auto-incrementing database IDs, ensuring 100% mathematical guarantee against short-code collisions.
+- **Deep Analytics:** Tracks and aggregates detailed metrics for every click:
+  - Geographic Location (Country matching via IP)
+  - Device Type (Mobile, Tablet, Desktop)
+  - Operating System & Browser
+  - UTM Parameters (Source, Medium, Campaign)
+- **Asynchronous Event Processing:** Uses Spring's `@Async` to decouple analytics tracking from the redirect flow. Users are redirected instantly while click metadata is processed and saved in the background.
+- **Graceful Fallbacks:** Implements custom `CacheErrorHandler` logic to automatically fall back to the PostgreSQL database if the Redis cache is ever unavailable, guaranteeing 100% uptime for redirects.
+- **Secure Authentication:** JWT-based stateless authentication with Spring Security.
 
 ---
 
-## 🚀 Project Overview
-
-The system allows users to:
-
-- Convert **long URLs into short shareable links**
-- Redirect users instantly when the short URL is accessed
-- Track **user click analytics**
-- View **real-time analytics dashboard**
-- Analyze traffic by **device, browser, and location**
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- React.js
-- JavaScript (ES6+)
-- CSS
-- Axios
-- React Router
+## 🛠️ Tech Stack & Architecture
 
 ### Backend
-- Java
-- Spring Boot
-- REST APIs
-- Spring Data JPA
+- **Framework:** Java 17, Spring Boot 3
+- **Security:** Spring Security, JWT (JSON Web Tokens)
+- **Database:** PostgreSQL (Hosted on Neon DB)
+- **Caching:** Redis (Hosted on Railway)
+- **ORM:** Spring Data JPA / Hibernate
 
-### Database
-- MySQL
-
-### Event Processing (Analytics)
-- Event logging architecture for scalable click tracking
-
-### DevOps / Deployment
-- Docker
-- Railway Cloud Deployment
-- GitHub
+### Frontend
+- **Framework:** React.js, Vite
+- **Deployment:** Netlify
 
 ---
 
-## ⚙️ Features
+## 🧠 System Architecture Highlights
 
-### 🔗 URL Shortening
-- Convert long URLs into short unique URLs
-- Collision-safe short URL generation
+### 1. The Redirection Engine (Redis + Fallback)
+When a user visits a short URL (e.g., `linksnapurl.up.railway.app/2`), the request hits a highly optimized `@GetMapping`. 
+- The system first attempts to fetch the original URL from the **Redis Cache** in memory.
+- If Redis is unavailable or the key expires, the system gracefully falls back to the **PostgreSQL** database, caching the result for future requests.
 
-### 🔁 Instant Redirection
-- Fast HTTP redirection
-- Optimized response handling
+### 2. Base62 Encoding
+Instead of generating random strings and querying the database to check for duplicates, LinkSnap uses the Database's auto-incrementing ID. 
+- Save URL -> Get ID (e.g., `10000`) -> Encode ID to Base62 -> Result (`2Bi`).
+- This guarantees uniqueness and requires only a highly efficient single index lookup.
 
-### 📊 Click Analytics
-Tracks user information including:
-- Click timestamp
-- Device type
-- Browser
-- Location
-- Referrer
+### 3. Background Analytics
+When a short URL is clicked, the `RedirectController` triggers a `ClickEventMessage`. This message is handed off to a background thread (`ClickEventProcessor.java`). The main thread immediately returns a `302 Redirect` to the user, while the background thread calls an external IP-API to determine the user's location and parses the `User-Agent` string to record analytics.
 
-### 📈 Analytics Dashboard
-Visual overview of:
-- Total clicks
-- Device distribution
-- Browser usage
-- Traffic sources
+---
 
-### 🌍 Scalable Architecture
-Designed to support:
-- Queue-based event logging
-- High traffic loads
-- Microservice scaling
+## 👨‍💻 Developed By
+Passionate about building scalable backend systems, robust APIs, and seamless user interfaces.
+
+<br>
+---
+> *"Scientists study the world as it is; engineers create the world that has never been."*
+> <br>&mdash; **Theodore von Kármán** *(Aerospace Engineer & Physicist)*
