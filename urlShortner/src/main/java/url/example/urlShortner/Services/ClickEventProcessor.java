@@ -1,9 +1,9 @@
 package url.example.urlShortner.Services;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import url.example.urlShortner.DTOs.ClickEventMessage;
 import url.example.urlShortner.Model.ClickEvent;
@@ -19,24 +19,25 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Service
 @AllArgsConstructor
-public class ClickEventKafkaConsumer {
+public class ClickEventProcessor {
 
     private final UrlMappingRepository urlMappingRepository;
     private final ClickEventRepository clickEventRepository;
-    private final ObjectMapper objectMapper;
 
-    @KafkaListener(topics = "click-events-topic", groupId = "url-shortener-group")
-    public void consumeClickEvent(String message) {
+    @Async
+    public void processClickEventAsync(ClickEventMessage clickData) {
         try {
-            ClickEventMessage clickData = objectMapper.readValue(message, ClickEventMessage.class);
-
+            log.info("Processing click event asynchronously for UrlMappingId: {}", clickData.getUrlMappingId());
             urlMappingRepository.incrementClickCount(clickData.getUrlMappingId());
 
             UrlMapping urlMapping = urlMappingRepository.findById(clickData.getUrlMappingId()).orElse(null);
-            if (urlMapping == null)
+            if (urlMapping == null) {
+                log.warn("UrlMapping not found for id: {}", clickData.getUrlMappingId());
                 return;
+            }
 
             ClickEvent clickEvent = new ClickEvent();
             clickEvent.setClickDate(LocalDateTime.now());
@@ -105,9 +106,10 @@ public class ClickEventKafkaConsumer {
             }
 
             clickEventRepository.save(clickEvent);
+            log.info("Successfully processed and saved click event.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to process click event: ", e);
         }
     }
 
@@ -141,7 +143,7 @@ public class ClickEventKafkaConsumer {
             return location;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to get location from IP {}: {}", ip, e.getMessage());
             return null;
         }
     }

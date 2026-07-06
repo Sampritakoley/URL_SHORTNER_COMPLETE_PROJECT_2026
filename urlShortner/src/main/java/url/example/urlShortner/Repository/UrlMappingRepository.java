@@ -18,6 +18,9 @@ import java.util.Optional;
 public interface UrlMappingRepository extends JpaRepository<UrlMapping, Long> {
     @Cacheable(value = "urlmapping", key = "#shortUrl")
     UrlMapping findByShortUrl(String shortUrl);
+
+    boolean existsByShortUrl(String shortUrl);
+
     List<UrlMapping> findByUser(User user);
 
     long countByUserId(Long userId);
