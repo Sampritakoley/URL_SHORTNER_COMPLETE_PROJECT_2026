@@ -81,7 +81,7 @@ public class WebSecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173", "http://localhost:5175",
                 "https://unique-marigold-f6538b.netlify.app",
-                "https://linksnapsam.netlify.app/"));
+                "https://linksnapsam.netlify.app"));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
