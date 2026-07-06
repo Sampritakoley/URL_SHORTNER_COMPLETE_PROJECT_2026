@@ -1,14 +1,7 @@
-import { Route, Routes } from "react-router-dom";
-import { getApps } from "./utils/helper";
-
+import AppRouter from "./AppRouter";
 
 function App() {
-
-  const CurrentApp = getApps();
-
-  return <CurrentApp />;
-
+  return <AppRouter />;
 }
 
 export default App;
-

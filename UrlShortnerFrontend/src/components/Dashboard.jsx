@@ -22,7 +22,7 @@ import Sidebar from "./Sidebar"
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const subDomain = (import.meta.env.VITE_REACT_SUBDOMAIN || "url.localhost:5174").replace(/^https?:\/\//, "");
+  const backendDomain = (import.meta.env.VITE_BACKEND_URL || "").replace(/^https?:\/\//, "");
 
   const [url, setUrl] = useState("")
   const [dashboard, setDashboard] = useState(null)
@@ -223,10 +223,10 @@ export default function Dashboard() {
                       </td>
                       <td className="p-4">
                         <div className="flex items-center gap-2">
-                           <a href={`${import.meta.env.VITE_REACT_SUBDOMAIN}/${link.shortUrl}`}
+                           <a href={`${import.meta.env.VITE_BACKEND_URL}/${link.shortUrl}`}
                               target="_blank"
                               className="text-[14.5px] font-montserrat font-[600] text-blue-600 hover:text-blue-700 hover:underline inline-flex">
-                              {subDomain + "/" + `${link.shortUrl}`}
+                              {backendDomain + "/" + `${link.shortUrl}`}
                            </a>
                            <button className="text-gray-400 hover:text-gray-600 bg-gray-100/50 hover:bg-gray-200 p-1 rounded transition-colors"><Copy size={14}/></button>
                         </div>

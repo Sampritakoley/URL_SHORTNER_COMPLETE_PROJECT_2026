@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import ShortenUrlPage from "./components/ShortenUrlPage";
 import { LandingPage } from "./components/LandingPage";
 import { AboutPage } from "./components/AboutPage";
 import RegisterPage from "./components/RegisterPage";
@@ -35,13 +34,3 @@ const AppRouter = () => {
 
 
 export default AppRouter;
-
-export const SubDomainRouter = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/:url" element={<ShortenUrlPage />} />
-      </Routes>
-    </BrowserRouter>
-  )
-}
