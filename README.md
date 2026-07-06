@@ -9,6 +9,13 @@
 
 LinkSnap is a highly scalable, full-stack URL shortening service designed with performance and deep analytics in mind. Built with **Spring Boot** and **React**, it features an optimized redirection engine powered by **Redis Caching** and a robust analytics engine that tracks geographic location, device types, and browser metrics using **Asynchronous Processing**.
 
+---
+
+## 🚀 Live Demo
+- **Frontend / Web App:** [https://linksnapsam.netlify.app/](https://linksnapsam.netlify.app/)
+- **Backend API:** [https://linksnapurl.up.railway.app/](https://linksnapurl.up.railway.app/)
+
+---
 
 ## ✨ Key Features
 
@@ -61,6 +68,11 @@ When a short URL is clicked, the `RedirectController` triggers a `ClickEventMess
 Passionate about building scalable backend systems, robust APIs, and seamless user interfaces.
 
 <br>
+
 ---
-> *"Scientists study the world as it is; engineers create the world that has never been."*
-> <br>&mdash; **Theodore von Kármán** *(Aerospace Engineer & Physicist)*
+
+<div align="center">
+  <h3><i>"Scientists study the world as it is;<br> engineers create the world that has never been."</i></h3>
+  <p><b>— Theodore von Kármán</b> <br>
+  <sub><i>Aerospace Engineer & Physicist</i></sub></p>
+</div>
