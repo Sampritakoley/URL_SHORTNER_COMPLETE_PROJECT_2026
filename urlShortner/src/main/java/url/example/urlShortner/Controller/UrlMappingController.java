@@ -3,7 +3,7 @@ package url.example.urlShortner.Controller;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import url.example.urlShortner.DTOs.ClickEventDTO;
 import url.example.urlShortner.DTOs.UrlCreateRequest;
@@ -28,19 +28,19 @@ public class UrlMappingController {
     private UserService userService;
 
 
+    private User getUser(Principal principal) {
+        if (principal instanceof Authentication auth && auth.getPrincipal() instanceof UserDetailsImpl impl) {
+            return userService.findByUsername(impl.getEmail());
+        }
+        return userService.findByUsername(principal.getName());
+    }
+
     @PostMapping("/url/shorten")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UrlMappingDTO> createShortUrl(@RequestBody UrlCreateRequest request,
                                                         Principal principal){
-        UsernamePasswordAuthenticationToken authentication =
-                (UsernamePasswordAuthenticationToken) principal;
-
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
-
-        String email = userDetails.getEmail();
+        User user = getUser(principal);
         String originalUrl = request.getOriginalUrl();
-        User user = userService.findByUsername(email);
         UrlMappingDTO urlMappingDTO = urlMappingService.createShortUrl(originalUrl, user);
         return ResponseEntity.ok(urlMappingDTO);
     }
@@ -49,14 +49,7 @@ public class UrlMappingController {
     @GetMapping("/myurls")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<UrlMappingDTO>> getUserUrls(Principal principal){
-        UsernamePasswordAuthenticationToken authentication =
-                (UsernamePasswordAuthenticationToken) principal;
-
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
-
-        String email = userDetails.getEmail();
-        User user = userService.findByUsername(email);
+        User user = getUser(principal);
         List<UrlMappingDTO> urls = urlMappingService.getUrlsByUser(user);
         return ResponseEntity.ok(urls);
     }
@@ -81,17 +74,11 @@ public class UrlMappingController {
                                                                      @RequestParam("startDate") String startDate,
                                                                      @RequestParam("endDate") String endDate){
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
-        UsernamePasswordAuthenticationToken authentication =
-                (UsernamePasswordAuthenticationToken) principal;
-
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
-
-        String email = userDetails.getEmail();
-        User user = userService.findByUsername(email);
+        User user = getUser(principal);
         LocalDate start = LocalDate.parse(startDate, formatter);
         LocalDate end = LocalDate.parse(endDate, formatter);
         Map<LocalDate, Long> totalClicks = urlMappingService.getTotalClicksByUserAndDate(user, start, end);
         return ResponseEntity.ok(totalClicks);
     }
 }
+

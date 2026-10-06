@@ -4,15 +4,19 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import url.example.urlShortner.DTOs.LoginRequest;
+import url.example.urlShortner.DTOs.UserDto;
 import url.example.urlShortner.Model.User;
 import url.example.urlShortner.Repository.UserRepository;
 import url.example.urlShortner.Security.JwtAuthenticationResponse;
 import url.example.urlShortner.Security.JwtUtils;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -24,6 +28,9 @@ public class UserService {
 
     public User registerUser(User user){
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getAuthProvider() == null) {
+            user.setAuthProvider("LOCAL");
+        }
         return userRepository.save(user);
     }
 
@@ -43,5 +50,21 @@ public class UserService {
         );
     }
 
+    public UserDto getUserDto(UserDetailsImpl userDetails) {
+        User user = findByUsername(userDetails.getEmail());
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
+        return UserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .name(user.getName() != null ? user.getName() : user.getUsername())
+                .picture(user.getPicture())
+                .authProvider(user.getAuthProvider())
+                .roles(roles)
+                .build();
+    }
 }
+

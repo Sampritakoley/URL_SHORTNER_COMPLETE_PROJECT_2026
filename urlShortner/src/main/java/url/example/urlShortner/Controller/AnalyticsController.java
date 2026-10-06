@@ -3,7 +3,7 @@ package url.example.urlShortner.Controller;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import url.example.urlShortner.DTOs.Analytics.GlobalAnalyticsResponse;
 import url.example.urlShortner.DTOs.Analytics.LinkAnalyticsResponse;
@@ -25,10 +25,12 @@ public class AnalyticsController {
     private UserService userService;
 
     private User getUser(Principal principal) {
-        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) principal;
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        return userService.findByUsername(userDetails.getEmail());
+        if (principal instanceof Authentication auth && auth.getPrincipal() instanceof UserDetailsImpl impl) {
+            return userService.findByUsername(impl.getEmail());
+        }
+        return userService.findByUsername(principal.getName());
     }
+
 
     @GetMapping("/global")
     @PreAuthorize("hasRole('USER')")

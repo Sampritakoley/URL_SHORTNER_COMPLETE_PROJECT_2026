@@ -1,46 +1,75 @@
-import { Search, Bell, Menu, Link as LinkIcon } from "lucide-react"
+import { Search, Bell, Menu, Link as LinkIcon, ChevronDown, Command } from "lucide-react"
+import { useStoreContext } from "../contextApi/ContextApi"
 
 export default function Navbar({ collapsed, setCollapsed }) {
+  const { user } = useStoreContext()
+  const userName = user?.name || user?.username || "User"
+  const userPicture = user?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4F46E5&color=fff&bold=true&size=64`
+
   return (
-    <div className="flex items-center justify-between bg-white border-b border-gray-100 flex-shrink-0 px-8 py-4 sticky top-0 z-30 min-h-[72px] w-full">
+    <div className="flex items-center justify-between flex-shrink-0 px-6 py-0 sticky top-0 z-30 min-h-[64px] w-full animate-fadeInDown"
+      style={{
+        background: 'rgba(255,255,255,0.55)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        borderBottom: '1px solid rgba(228,228,231,0.6)',
+      }}
+    >
 
       {/* LEFT: Menu & Logo & Search */}
-      <div className="flex items-center gap-4 lg:gap-8">
-        
-        {/* COLLAPSE MENU BUTTON */}
-        <button onClick={() => setCollapsed(!collapsed)} className="text-gray-400 hover:text-gray-600 outline-none p-1 shrink-0">
-          <Menu size={22} />
-        </button>
-        
-        {/* LOGO IN NAVBAR */}
-        <div className="flex items-center gap-2 text-blue-600 shrink-0">
-          <LinkIcon size={24} className="-rotate-45" />
-          <h1 className="text-2xl font-bold tracking-tight">LinkSnap</h1>
-        </div>
+      <div className="flex items-center gap-4 lg:gap-6">
 
-        {/* SEARCH */}
-        <div className="hidden sm:flex items-center bg-[#f8fafc] border border-gray-200 px-3 py-2 rounded-lg w-64 md:w-80 lg:w-96 transition-colors focus-within:bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
-          <Search size={18} className="text-gray-400" />
-          <input
-            placeholder="Search links..."
-            className="bg-transparent outline-none px-3 text-sm flex-1 text-gray-700 ml-2"
-          />
+        {/* COLLAPSE MENU BUTTON */}
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="text-zinc-400 hover:text-indigo-600 p-2 rounded-xl hover:bg-zinc-100/80 transition-all duration-300 shrink-0 outline-none group"
+          aria-label="Toggle sidebar"
+        >
+          <Menu size={19} className="transition-transform duration-300 group-hover:scale-110" />
+        </button>
+
+        {/* LOGO IN NAVBAR */}
+        <div className="flex items-center gap-2 shrink-0 group cursor-pointer">
+          <div className="w-8 h-8 gradient-brand rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-300">
+            <LinkIcon size={15} className="-rotate-45 text-white" />
+          </div>
+          <span className="text-[1.05rem] font-bold tracking-tight gradient-text hidden sm:block">
+            LinkSnap
+          </span>
         </div>
 
       </div>
 
-      {/* RIGHT: User & Notifications */}
-      <div className="flex items-center gap-6">
-        <button className="relative text-gray-400 hover:text-gray-600 transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+      {/* RIGHT: Notifications & User */}
+      <div className="flex items-center gap-2">
+
+        {/* BELL */}
+        <button className="relative text-zinc-400 hover:text-indigo-600 p-2.5 rounded-xl hover:bg-zinc-100/80 transition-all duration-300 outline-none group">
+          <Bell size={17} className="group-hover:rotate-12 transition-transform duration-300" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 left-0 top-0"></span>
+          </span>
         </button>
 
-        <div className="flex items-center gap-2 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm overflow-hidden">
-             <img src="https://ui-avatars.com/api/?name=Alex&background=2563eb&color=fff" alt="User" className="w-full h-full object-cover" />
+        {/* DIVIDER */}
+        <div className="w-px h-6 bg-zinc-200/80 mx-1 hidden md:block" />
+
+        {/* USER */}
+        <button className="flex items-center gap-2.5 pl-2 pr-3 py-1.5 rounded-xl hover:bg-zinc-100/80 transition-all duration-300 outline-none group">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm overflow-hidden flex-shrink-0 ring-2 ring-transparent group-hover:ring-indigo-100 transition-all duration-300 shadow-sm">
+            <img
+              src={userPicture}
+              alt={userName}
+              className="w-full h-full object-cover"
+            />
           </div>
-        </div>
+          <div className="hidden md:flex flex-col items-start">
+            <span className="text-[13px] font-semibold text-zinc-700 leading-tight">{userName}</span>
+            <span className="text-[11px] text-zinc-400 leading-tight">{user?.authProvider === 'GOOGLE' ? 'Google Account' : 'Standard User'}</span>
+          </div>
+          <ChevronDown size={14} className="text-zinc-400 group-hover:text-indigo-500 transition-all duration-300 group-hover:translate-y-0.5 hidden md:block" />
+        </button>
+
       </div>
     </div>
   )
